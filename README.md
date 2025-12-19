@@ -57,6 +57,7 @@ devsecops-lab/
 
 ## ✅ Pipeline après correction
 
+<img width="2548" height="1197" alt="image" src="https://github.com/user-attachments/assets/198ab727-1415-404f-ab94-be95597e7a34" />
 
 
 
