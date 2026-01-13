@@ -1,4 +1,30 @@
-- name: Dependency Scan - Safety
-  run: |
-    pip install safety
-    safety scan --full-report || true
+name: DevSecOps Pipeline
+
+on: [push]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SAST - Bandit
+        run: |
+          pip install bandit
+          bandit -r api -ll
+
+      - name: Dependency Scan - Safety
+        run: |
+          pip install safety
+          safety scan --full-report || true
+
+      - name: Build Docker Image
+        run: docker build -t secureapp .
+
+      - name: Container Scan - Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: secureapp
+          exit-code: 1
+          severity: CRITICAL,HIGH
