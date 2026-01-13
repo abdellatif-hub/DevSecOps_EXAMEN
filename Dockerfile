@@ -1,25 +1,6 @@
-FROM python:3.9-slim
-
-# Create non-root user
-RUN useradd -m appuser
-
-# Set working directory
+FROM python:3.10
 WORKDIR /app
-
-# Copy application source code
-COPY api/ .
-
-# Update system and install dependencies
-RUN apt-get update && apt-get upgrade -y \
-    && pip install --no-cache-dir flask \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Switch to non-root user
-USER appuser
-
-# Expose application port
+COPY . .
+RUN pip install -r requirements.txt
 EXPOSE 5000
-
-# Run the application
-CMD ["python", "app.py"]
+CMD ["python","api/app.py"]

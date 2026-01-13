@@ -1,67 +1,30 @@
 name: DevSecOps Pipeline
 
-on:
-  push:
-    branches: [ "main" ]
-
-permissions:
-  contents: read
-  security-events: write
-  actions: read
+on: [push]
 
 jobs:
-  devsecops:
+  security:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout source code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    ############################################
-    # 1. SAST - CodeQL
-    ############################################
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: python
+    - name: SAST - Bandit
+      run: |
+        pip install bandit
+        bandit -r api -ll
 
-    - name: Run CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+    - name: Dependency Scan - Safety
+      run: |
+        pip install safety
+        safety check
 
-    ############################################
-    # 2. SAST - Bandit
-    ############################################
-    - name: Install Bandit
-      run: pip install bandit
+    - name: Build Docker Image
+      run: docker build -t secureapp .
 
-    - name: Run Bandit (non-blocking)
-      run: bandit -r api --severity-level high || true
-
-    ############################################
-    # 3. Build Docker Image
-    ############################################
-    - name: Build Docker image
-      run: docker build -t devsecops-api .
-
-    ############################################
-    # 4. Container Scan - Trivy
-    ############################################
-    - name: Trivy Scan
+    - name: Container Scan - Trivy
       uses: aquasecurity/trivy-action@master
       with:
-        scan-type: image
-        image-ref: devsecops-api
-        severity: CRITICAL,HIGH
+        image-ref: secureapp
         exit-code: 1
-        
-    ############################################
-    # Scan des dépendances Python (DevSecOps-2)
-    ############################################
-    - name: Install Safety
-      run: pip install safety
-
-    - name: Dependency vulnerability scan
-      run: safety check -r requirements.txt
-
-
-
+        severity: CRITICAL,HIGH
